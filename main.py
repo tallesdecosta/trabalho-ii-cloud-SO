@@ -6,81 +6,57 @@ import json
 
 app = Flask(__name__)
 
+TEAM_MEMBERS = {
+    "equipe": "Equipe: Danton Talles, Gabriel Losekann",
+    "autores": [
+        "Danton Talles",
+        "Gabriel Losekann"
+    ]
+}
+
 @app.route('/info')
 def info():
 
-    # (a) Integrantes
-    team_members = "Equipe: Danton Talles, Gabriel Losekann"
-
-    return f"""
-    <div style="font-family: sans-serif;">
-        <h1>Info</h1>
-        <p>{team_members}</p>
-    </div>
-    """
+    return jsonify(TEAM_MEMBERS)
 
 @app.route('/metricas')
 def metricas():
 
-    process_id = os.getpid()
-    
-    current_process = psutil.Process(process_id)
-    
-    memory_info = current_process.memory_info()
-    memory_usage_mb = memory_info.rss / (1024 ** 2)
-    
-    cpu_usage_percent = psutil.cpu_percent(interval=0.1)
-    
-    os_system = platform.system()
-    os_release = platform.release()
-    os_info = f"{os_system} {os_release}"
+    pid = os.getpid()
+    proc = psutil.Process(pid)
+    mem_mb = round(proc.memory_info().rss / (1024 ** 2), 2)
+    cpu_percent = psutil.cpu_percent(interval=0.1)
+    os_info = f"{platform.system()} ({platform.release()})"
 
-
-    return f"""
-    <div style="font-family: sans-serif;">
-        <h1>Metricas</h1>
-        <p>
-        {
-            {
-                'PID': os.getpid(), 
-                'Memoria': memory_usage_mb,
-                'Uso de CPU': cpu_usage_percent,
-                'SO': os_info
-            }
-        }
-        </p> 
-    </div>
-"""
+    data = {
+        "equipe": TEAM_MEMBERS['equipe'],  # Item 3a
+        "pid": pid,                        # Item 3b
+        "memoria_usada_mb": mem_mb,        # Item 3c
+        "cpu_percent": cpu_percent,        # Item 3d
+        "sistema_operacional": os_info     # Item 3e
+    }
+    
+    return jsonify(data)
 
 @app.route('/')
 def index():
-    """
-    Rota principal que exibe métricas do sistema.
-    """
-
-    process_id = os.getpid()
     
-    current_process = psutil.Process(process_id)
-    
-    memory_info = current_process.memory_info()
-    memory_usage_mb = memory_info.rss / (1024 ** 2)
-    
-    cpu_usage_percent = psutil.cpu_percent(interval=0.1)
-    
-    os_system = platform.system()
-    os_release = platform.release()
-    os_info = f"{os_system} {os_release}"
+    pid = os.getpid()
+    proc = psutil.Process(pid)
+    mem_mb = round(proc.memory_info().rss / (1024 ** 2), 2)
+    cpu_percent = psutil.cpu_percent(interval=0.1)
+    os_info = f"{platform.system()} ({platform.release()})"
 
     return f"""
     <div style="font-family: sans-serif;">
-        <h1>Monitoramento de Sistema</h1>
-        <hr>
-        <p>PID: {process_id}</p>
-        <p>Memória (RSS): {memory_usage_mb:.2f} MB</p>
-        <p>Uso de CPU: {cpu_usage_percent}%</p>
-        <p>SO:{os_info}</p>
+        <p><strong>Nome:</strong> {TEAM_MEMBERS['equipe']}</p>
+        <p><strong>PID:</strong> {pid}</p>
+        <p><strong>Memória usada:</strong> {mem_mb} MB</p>
+        <p><strong>CPU:</strong> {cpu_percent}%</p>
+        <p><strong>Sistema Operacional:</strong> {os_info}</p>
     </div>
     """
 
 if __name__ == '__main__':
+
     app.run(debug=True, port=5000)
